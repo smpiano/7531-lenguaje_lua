@@ -5,8 +5,10 @@ function love.load()
 
 	game = {} -- new table for game data
 	game.state = "mainMenu"
+	game.won = false
 	game.score = 0
-	game.highscores = {}
+	game.highScores = {[1]={name="AAA", score=0, date=os.date("%c")}, [2]={name="BBB", score=0, date=os.date("%c")}, [3]={name="CCC", score=0, date=os.date("%c")}, [4]={name="DDD", score=0, date=os.date("%c")}, [5]={name="EEE", score=0, date=os.date("%c")}}
+	
 	bg = love.graphics.newImage("bg.png")
 	
 	initGame()
@@ -23,9 +25,12 @@ function love.update(dt)
 			if (#enemies == 1) then
 				-- game action
 				-- no bricks left
+				-- you win!!!
 				game.state = "gameOver"
-				table.insert(game.highscores, game.score)
-			
+				game.won = true
+				table.insert(game.highScores, {name="FFF", score=game.score, date=os.date("%c")})
+				table.sort(game.highScores, compareScoresGt)
+				
 			else
 				-- game action
 				-- bricks left
@@ -84,9 +89,10 @@ function love.update(dt)
 						game.state = "gameOver"
 					end
 				end
-
+				
 				if game.state == "gameOver" then
-					table.insert(game.highscores, game.score)
+					table.insert(game.highScores, {name="FFF", score=game.score, date=os.date("%c")})
+					table.sort(game.highScores, compareScoresGt)
 				end
 			end
 		else
@@ -134,12 +140,19 @@ function love.draw()
 			-- game over!
 			love.graphics.reset()
 			love.graphics.setBackgroundColor(0, 0, 0)
-			love.graphics.print("The End", 400, 200)
+			love.graphics.print("The End.", 400, 180)
+			if game.won == true then
+				love.graphics.print("YOU WON!", 400, 200)
+			else
+				love.graphics.print("You lost the game.", 400, 200)
+			end
 			love.graphics.print("Press SPACE to play again or ESC to quit!", 400, 220)
 			love.graphics.print("Your score is: " .. game.score .. ".", 400, 240)
 			love.graphics.print("HIGHSCORES", 400, 300)
-			for i,v in ipairs(enemies) do
-				love.graphics.print(game.highscores[i], 400, 320 + 20*i)
+			for i=1,5 do
+				love.graphics.print(game.highScores[i].name, 400, 320 + 20*i)
+				love.graphics.print(game.highScores[i].score, 440, 320 + 20*i)
+				love.graphics.print(game.highScores[i].date, 480, 320 + 20*i)
 			end
 		end
 	end	
@@ -197,6 +210,13 @@ function initGame()
 		enemy.y = enemy.height + 100
 		table.insert(enemies, enemy)
 	end	
+end
+
+function compareScoresGt(w1,w2)
+
+	if w1.score > w2.score then
+		return true
+	end
 end
 
 function shoot()
