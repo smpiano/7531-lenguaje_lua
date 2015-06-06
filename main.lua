@@ -80,11 +80,24 @@ function love.update(dt)
 				amplitud = 10
 				angular = (2*math.pi / 20)
 				-- update those evil enemies
+				
+				local farthest = 0
+				for i,v in ipairs(enemies) do
+					if (v.x > farthest) then
+						farthest = v.x
+					end
+				end
+				if farthest < 600 then
+					local newSize = math.random(2,5)
+					for j=0,newSize do
+						generateEnemy(newSize, j)
+					end
+				end
 				for i,v in ipairs(enemies) do
 					-- let them fall down slowly
 					--v.x = v.x - dt * 25
 					v.x = v.x - dt * 30
-					v.y = v.y - (amplitud * math.sin( angular * math.abs(v.x-800) ))
+					--v.y = v.y - (amplitud * math.sin( angular * math.abs(v.x-800) ))
 
 					-- check for collision with ground
 					if v.x < 10 then
@@ -205,15 +218,22 @@ function initGame()
 	hero.speed = 150
 	hero.shots = {} -- holds our fired shots
 
-	for i=0,7 do
-		enemy = {}
-		enemy.width = 20
-		enemy.height = 40
-		--enemy.x = i * (enemy.width + 60) + 100
-		enemy.y = i * (enemy.height + 40) + 50
-		enemy.x = enemy.height + 800
-		table.insert(enemies, enemy)
+	local size = 8
+	for i=1,size do
+		generateEnemy(size, i)
 	end	
+
+end
+
+function generateEnemy(size, i)
+	enemy = {}
+	enemy.width = 20
+	enemy.height = 40
+	--enemy.x = i * (enemy.width + 60) + 100
+	--enemy.y = i * (enemy.height + 40) + 50
+	enemy.y = (600/math.pow(2,size-2)) - enemy.height/2  + ((600/math.pow(2,size-3)) + enemy.height) * i
+	enemy.x = enemy.height + 800
+	table.insert(enemies, enemy)
 end
 
 function compareScoresGt(w1,w2)
