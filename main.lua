@@ -77,27 +77,43 @@ function love.update(dt)
 				for i,v in ipairs(remShot) do
 					table.remove(hero.shots, v)
 				end
-				amplitud = 10
-				angular = (2*math.pi / 20)
-				-- update those evil enemies
 				
+				
+				-- detect the farther position
 				local farthest = 0
 				for i,v in ipairs(enemies) do
 					if (v.x > farthest) then
 						farthest = v.x
 					end
 				end
-				if farthest < 600 then
+				--generate more enemies
+				if farthest < 700 then
 					local newSize = math.random(2,5)
+					local isCrazy = true
+					if (math.random(0,1)==0) then
+						isCrazy = false
+					end
 					for j=0,newSize do
-						generateEnemy(newSize, j)
+						generateEnemy(newSize, j, isCrazy, not phase)
 					end
 				end
+				local amplitud = 10
+				local angular = (2*math.pi / 20)
+				-- update those evil enemies
 				for i,v in ipairs(enemies) do
 					-- let them fall down slowly
 					--v.x = v.x - dt * 25
 					v.x = v.x - dt * 30
-					--v.y = v.y - (amplitud * math.sin( angular * math.abs(v.x-800) ))
+					if (v.isCrazy) then
+						--v.y = v.y - (amplitud * math.sin( angular * math.abs(v.x-800)))
+						if v.phase == false then
+							v.y = v.y - (amplitud * math.sin( angular * math.abs(v.x-800)))
+							phase = false
+						else 
+							v.y = v.y - (amplitud * math.cos( angular * math.abs(v.x-800)))
+							phase = true
+						end
+					end
 
 					-- check for collision with ground
 					if v.x < 10 then
@@ -219,20 +235,24 @@ function initGame()
 	hero.shots = {} -- holds our fired shots
 
 	local size = 8
-	for i=1,size do
-		generateEnemy(size, i)
+	for i=0,size do
+		generateEnemy(size, i, false, true)
 	end	
-
+	phase = true
 end
 
-function generateEnemy(size, i)
+function generateEnemy(size, i, crazy, ph)
 	enemy = {}
 	enemy.width = 20
 	enemy.height = 40
 	--enemy.x = i * (enemy.width + 60) + 100
 	--enemy.y = i * (enemy.height + 40) + 50
-	enemy.y = (600/math.pow(2,size-2)) - enemy.height/2  + ((600/math.pow(2,size-3)) + enemy.height) * i
+	local aux = 600/math.pow(2,size+1)
+	local beforeAux = 600/(size+1)
+	enemy.y =  aux + beforeAux * i
 	enemy.x = enemy.height + 800
+	enemy.isCrazy = crazy
+	enemy.phase = ph
 	table.insert(enemies, enemy)
 end
 
@@ -259,4 +279,13 @@ function CheckCollision(x1,y1,w1,h1, x2,y2,w2,h2)
 		x2 < x1+w1 and
 		y1 < y2+h2 and
 		y2 < y1+h1
+end
+
+-- defines a factorial function
+function fact (n)
+  if n == 0 then
+    return 1
+  else
+    return n * fact(n-1)
+  end
 end
