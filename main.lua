@@ -22,7 +22,7 @@ function love.update(dt)
 	else
 
 		if game.state == "playGame" then
-			if (#enemies == 1) then
+			if (#enemies == 0) then
 				-- game action
 				-- no bricks left
 				-- you win!!!
@@ -77,11 +77,14 @@ function love.update(dt)
 				for i,v in ipairs(remShot) do
 					table.remove(hero.shots, v)
 				end
-
+				amplitud = 10
+				angular = (2*math.pi / 20)
 				-- update those evil enemies
 				for i,v in ipairs(enemies) do
 					-- let them fall down slowly
-					v.x = v.x - dt * 25
+					--v.x = v.x - dt * 25
+					v.x = v.x - dt * 30
+					v.y = v.y - (amplitud * math.sin( angular * math.abs(v.x-800) ))
 
 					-- check for collision with ground
 					if v.x < 10 then
