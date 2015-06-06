@@ -98,7 +98,7 @@ function love.update(dt)
 					end
 				end
 				local amplitud = 10
-				local angular = (2*math.pi / 20)
+				local angular = (2*math.pi / 20) --2*PI / T
 				-- update those evil enemies
 				for i,v in ipairs(enemies) do
 					-- let them fall down slowly
