@@ -84,7 +84,7 @@ function love.update(dt)
 					v.x = v.x - dt * 25
 
 					-- check for collision with ground
-					if v.y < 0 then
+					if v.x < 10 then
 						-- you lose!!!
 						game.state = "gameOver"
 					end
