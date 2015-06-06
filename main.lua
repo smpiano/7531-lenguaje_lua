@@ -35,10 +35,10 @@ function love.update(dt)
 				-- game action
 				-- bricks left
 				-- keyboard actions for our hero
-				if love.keyboard.isDown("left") then
-					hero.x = hero.x - hero.speed*dt
-				elseif love.keyboard.isDown("right") then
-					hero.x = hero.x + hero.speed*dt
+				if love.keyboard.isDown("up") then
+					hero.y = hero.y - hero.speed*dt
+				elseif love.keyboard.isDown("down") then
+					hero.y = hero.y + hero.speed*dt
 				end
 
 				local remEnemy = {}
@@ -47,11 +47,11 @@ function love.update(dt)
 				-- update the shots
 				for i,v in ipairs(hero.shots) do
 
-					-- move them up up up
-					v.y = v.y - dt * 100
+					-- move them right right right
+					v.x = v.x + dt * 100
 
 					-- mark shots that are not visible for removal
-					if v.y < 0 then
+					if v.x > 800 then
 						table.insert(remShot, i)
 					end
 				
@@ -81,10 +81,10 @@ function love.update(dt)
 				-- update those evil enemies
 				for i,v in ipairs(enemies) do
 					-- let them fall down slowly
-					v.y = v.y + dt * 25
+					v.x = v.x - dt * 25
 
 					-- check for collision with ground
-					if v.y > 465 then
+					if v.y < 0 then
 						-- you lose!!!
 						game.state = "gameOver"
 					end
@@ -106,7 +106,7 @@ function love.draw()
 	if game.state == "mainMenu" then
 		-- main menu
 		love.graphics.setBackgroundColor(0, 0, 0)
-		love.graphics.print("Welcome! Press SPACE to play...", 400, 300)
+		love.graphics.print("Bienvenidos! Presione SPACE para jugar...", 350, 300)
 	else 
 		if game.state == "playGame" then
 			-- game action
@@ -195,35 +195,34 @@ function initGame()
 	hero = {} -- new table for the hero
 	enemies = {}
 
-	hero.x = 300 -- x,y coordinates of the hero
-	hero.y = 450
-	hero.width = 30
-	hero.height = 15
+	hero.x = 10 -- x,y coordinates of the hero
+	hero.y = 300
+	hero.width = 15
+	hero.height = 30
 	hero.speed = 150
 	hero.shots = {} -- holds our fired shots
 
 	for i=0,7 do
 		enemy = {}
-		enemy.width = 40
-		enemy.height = 20
-		enemy.x = i * (enemy.width + 60) + 100
-		enemy.y = enemy.height + 100
+		enemy.width = 20
+		enemy.height = 40
+		--enemy.x = i * (enemy.width + 60) + 100
+		enemy.y = i * (enemy.height + 40) + 50
+		enemy.x = enemy.height + 800
 		table.insert(enemies, enemy)
 	end	
 end
 
 function compareScoresGt(w1,w2)
-
 	if w1.score > w2.score then
 		return true
 	end
 end
 
 function shoot()
-
 	local shot = {}
-	shot.x = hero.x+hero.width/2
-	shot.y = hero.y
+	shot.x = hero.x + hero.width
+	shot.y = hero.y + hero.height/2
 
 	table.insert(hero.shots, shot)
 end
