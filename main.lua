@@ -57,7 +57,7 @@ function love.update(dt)
 				
 					-- check for collision with enemies
 					for ii,vv in ipairs(enemies) do
-						if CheckCollision(v.x,v.y,2,5,vv.x,vv.y,vv.width,vv.height) then
+						if CheckCollision(v.x,v.y,5,2,vv.x,vv.y,vv.width,vv.height) then
 
 							-- mark that enemy for removal
 							table.insert(remEnemy, ii)
@@ -117,7 +117,7 @@ function love.draw()
 
 			-- let's draw some ground
 			love.graphics.setColor(0,255,0,255)
-			love.graphics.rectangle("fill", 0, 465, 800, 150)
+			love.graphics.rectangle("fill", 0, 0, 10, 600)
 	
 			-- let's draw our hero
 			love.graphics.setColor(255,255,0,255)
@@ -126,7 +126,7 @@ function love.draw()
 			-- let's draw our heros shots
 			love.graphics.setColor(255,255,255,255)
 			for i,v in ipairs(hero.shots) do
-				love.graphics.rectangle("fill", v.x, v.y, 2, 5)
+				love.graphics.rectangle("fill", v.x, v.y, 5, 2)
 			end
 
 			-- let's draw our enemies
@@ -135,20 +135,20 @@ function love.draw()
 				love.graphics.rectangle("fill", v.x, v.y, v.width, v.height)
 			end
 			love.graphics.setColor(255,255,255,255)
-			love.graphics.print("Your score is: " .. game.score .. ".", 600, 550)
+			love.graphics.print("Tu puntaje es: " .. game.score .. ".", 600, 550)
 		else
 			-- game over!
 			love.graphics.reset()
 			love.graphics.setBackgroundColor(0, 0, 0)
-			love.graphics.print("The End.", 400, 180)
+			love.graphics.print("Fin.", 400, 180)
 			if game.won == true then
-				love.graphics.print("YOU WON!", 400, 200)
+				love.graphics.print("GANASTE!", 400, 200)
 			else
-				love.graphics.print("You lost the game.", 400, 200)
+				love.graphics.print("Perdiste el juego :(", 400, 200)
 			end
-			love.graphics.print("Press SPACE to play again or ESC to quit!", 400, 220)
-			love.graphics.print("Your score is: " .. game.score .. ".", 400, 240)
-			love.graphics.print("HIGHSCORES", 400, 300)
+			love.graphics.print("Presioná SPACE para jugar de nuevo o ESC para salir!", 400, 220)
+			love.graphics.print("Tu puntaje es: " .. game.score .. ".", 400, 240)
+			love.graphics.print("Tabla de Puntajes", 400, 300)
 			for i=1,5 do
 				love.graphics.print(game.highScores[i].name, 400, 320 + 20*i)
 				love.graphics.print(game.highScores[i].score, 440, 320 + 20*i)
