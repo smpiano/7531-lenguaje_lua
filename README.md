@@ -11,4 +11,6 @@ Love [https://love2d.org/]
 
 Pararse dentro del directorio y ejecutar
 
+```
 $ love .
+```
