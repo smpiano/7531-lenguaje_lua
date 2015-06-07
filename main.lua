@@ -317,6 +317,7 @@ function love.draw()
 			end
 			
 			-- credits to love and lua!
+			love.graphics.setColor(255,255,255,255)
 			love.graphics.setFont(oldFont)
 			love.graphics.print("Hecho con:", 50, 550)
 			love.graphics.draw(logoLUA, 220, 530)
