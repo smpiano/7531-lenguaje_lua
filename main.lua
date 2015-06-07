@@ -1,12 +1,14 @@
--- Demo para la presentacion de la materia 75.31 "Teoria del Lenguaje", lenguaje LUA - GRUPO 3
+-- Demo para la presentacion de la materia 75.31 "Teoria de Lenguajes", lenguaje LUA - GRUPO 3
 -- FIUBA, 08/06/2015
 
 function love.load()
 
 	math.randomseed(os.time())
+	speedUp = false
 
 	-- new table for game data
 	game = {} 
+	game.enemyWave = 30
 	game.state = "mainMenu"
 	game.playerName = ""
 	game.playerNameLocked = false
@@ -23,9 +25,27 @@ function love.load()
 	upArrow = love.graphics.newImage("images/upArrow.png")
 	spaceKey = love.graphics.newImage("images/spaceKey.png")
 	escKey = love.graphics.newImage("images/escKey.png")
-	
+
+	playerIcon = love.graphics.newImage("images/playerIcon.png")
+	lifeIcon = love.graphics.newImage("images/lifeIcon.png")
 	logoLUA = love.graphics.newImage("images/logoLUA.png")
 	logoLOVE = love.graphics.newImage("images/logoLOVE.png")
+	
+	logoASP = love.graphics.newImage("images/logoASP.png")
+	logoCLOJURE = love.graphics.newImage("images/logoCLOJURE.png")
+	logoCPP = love.graphics.newImage("images/logoCPP.png")
+	logoCSH = love.graphics.newImage("images/logoCSH.png")
+	logoDELPHI = love.graphics.newImage("images/logoDELPHI.png")
+	logoEIFFEL = love.graphics.newImage("images/logoEIFFEL.png")
+	logoHASKELL = love.graphics.newImage("images/logoHASKELL.png")
+	logoJAVA = love.graphics.newImage("images/logoJAVA.png")
+	logoJS = love.graphics.newImage("images/logoJS.png")
+	logoLISP = love.graphics.newImage("images/logoLISP.png")
+	logoOZ = love.graphics.newImage("images/logoOZ.png")
+	logoPERL = love.graphics.newImage("images/logoPERL.png")
+	logoPYTHON = love.graphics.newImage("images/logoPYTHON.png")
+	logoRUBY = love.graphics.newImage("images/logoRUBY.png")
+	logoSCALA = love.graphics.newImage("images/logoSCALA.png")
 	
 	-- loadSFX
 	startSound = love.audio.newSource("sounds/start.wav", "static")
@@ -58,6 +78,7 @@ function love.update(dt)
 		if game.state == "playGame" then
 			-- game action
 			-- keyboard actions for player
+			
 			if ((love.keyboard.isDown("up")) and (player.y > 0)) then
 				player.y = player.y - player.speed*dt
 			else
@@ -66,13 +87,22 @@ function love.update(dt)
 				end
 			end
 
+			if (game.score % 500 == 0) then
+				if (speedup == false) then
+					speedup = true
+					game.enemyWave = game.enemyWave + 1
+				end
+			else
+				speedup = false
+			end
+
 			local remEnemy = {}
 			local remShot = {}
 
 			-- update the shots
 			for i,v in ipairs(player.shots) do
 
-				-- move them right right right
+				-- move them right
 				v.x = v.x + dt * 100
 
 				-- mark shots that are not visible for removal
@@ -116,13 +146,14 @@ function love.update(dt)
 				
 			--generate more enemies
 			if farthest < 700 then
+				
 				local newSize = math.random(2,5)
 				local isCrazy = true
 				if (math.random(0,1)==0) then
 					isCrazy = false
 				end
 				for j=0,newSize do
-					generateEnemy(newSize, j, isCrazy, not phase)
+					generateEnemy(newSize, j, isCrazy, not phase, game.enemyWave)
 				end
 			end
 			local amplitud = 10
@@ -131,7 +162,7 @@ function love.update(dt)
 			-- update those evil enemies
 			for i,v in ipairs(enemies) do
 				-- let them fall down slowly
-				v.x = v.x - dt * 30
+				v.x = v.x - dt * v.speed
 				if v.isCrazy then
 					if v.phase == false then
 						v.y = v.y - (amplitud * math.sin( angular * math.abs(v.x-800)))
@@ -208,13 +239,21 @@ function love.draw()
 			love.graphics.setColor(255,255,255,255)
 			love.graphics.draw(bgGame)
 
+			-- DEBUG
+			love.graphics.setColor(255,255,0,200)
+			love.graphics.print("VELOCIDAD:" .. game.enemyWave, 590, 20)
+			love.graphics.print("QUEDAN LG:" .. #enemies, 590, 40)
+			love.graphics.setColor(255,255,255,200)
+
 			-- let's draw some ground
 			love.graphics.setColor(255,0,0,255)
 			love.graphics.rectangle("fill", 0, 0, 5, 600)
 	
 			-- let's draw our player
-			love.graphics.setColor(255,255,0,255)
+			love.graphics.setColor(240,240,240,150)
 			love.graphics.rectangle("fill", player.x, player.y, player.width, player.height)
+			love.graphics.setColor(255,255,255,255)
+			love.graphics.draw(playerIcon, (player.x)+2, (player.y)+2)
 
 			-- let's draw our players shots
 			love.graphics.setColor(255,255,255,255)
@@ -223,9 +262,11 @@ function love.draw()
 			end
 
 			-- let's draw our enemies
-			love.graphics.setColor(0,255,255,255)
 			for i,v in ipairs(enemies) do
+				love.graphics.setColor(240,240,240,150)
 				love.graphics.rectangle("fill", v.x, v.y, v.width, v.height)
+				love.graphics.setColor(255,255,255,255)
+				love.graphics.draw(v.texture, (v.x)+2, (v.y)+2)
 			end
 			
 			-- status messages at bottom of screen
@@ -233,11 +274,10 @@ function love.draw()
 			love.graphics.rectangle("fill", 0, 550, 800, 50)
 			love.graphics.setColor(255,255,255,255)
 			love.graphics.print("Tu puntaje es: " .. game.score, 10, 571)
-			love.graphics.print("Te quedan " .. player.livesLeft .. " vidas:", 415, 571)
+			love.graphics.print("Te quedan " .. player.livesLeft .. " vidas:", 380, 571)
 			for i=0,player.livesLeft-1 do
-				love.graphics.setColor(255,255,0,255)
-				love.graphics.rectangle("fill", 720 + i*(player.width+10), 560, player.width, player.height)
-			end	
+				love.graphics.draw(lifeIcon, 675 + i*(40), 560)
+			end
 		else
 			-- game over!
 			love.graphics.reset()
@@ -249,7 +289,7 @@ function love.draw()
 			love.graphics.setColor(255,255,255,255)
 			love.graphics.print("Perdiste el juego :(", 250, 120)
 			love.graphics.setColor(255,255,0,255)
-			love.graphics.print("'SPACE' para jugar de nuevo...", 100, 200)
+			love.graphics.print("'1' para jugar de nuevo...", 100, 200)
 			love.graphics.print("'ESC' para salir!", 100, 225)
 			love.graphics.setColor(255,255,255,255)			
 			love.graphics.print("Tu puntaje es: " .. game.score, 100, 270)
@@ -299,7 +339,7 @@ end
 
 function love.keypressed(key)
 	
-	local validLetters = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
+	local validLetters = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "."}
 	
 	-- player name handling
 	if (game.state == "gameOver" and game.playerNameLocked == false and game.isHighScore == true) then
@@ -353,7 +393,7 @@ function love.keyreleased(key)
 			end
 		else
 			-- game over!
-			if (key == " ") then
+			if (key == "1") then
 				game.state = "playGame"
 				player = nil
 				enemies = nil
@@ -367,6 +407,7 @@ function love.keyreleased(key)
 end
 
 function initGame()
+	speedUp = false
 
 	-- game properties
 	game.score = 0
@@ -374,6 +415,7 @@ function initGame()
 	game.isHighScore = false
 	game.playerName = ""
 	game.playerNameLocked = false
+	game.enemyWave = 30
 
 	-- new table for the player
 	player = {}
@@ -384,11 +426,11 @@ function initGame()
 	player.y = 300
 
 	-- size of the player
-	player.width = 15
-	player.height = 30
+	player.width = 54
+	player.height = 54
 	
 	-- speed and lives left of the player
-	player.speed = 150
+	player.speed = 160
 	player.livesLeft = 3
 	
 	-- holds our fired shots
@@ -397,22 +439,26 @@ function initGame()
 	-- first batch of enemies!
 	local size = 5
 	for i=0,size do
-		generateEnemy(size, i, false, true)
+		generateEnemy(size, i, false, true, game.enemyWave)
 	end	
 	phase = true
 end
 
-function generateEnemy(size, i, crazy, ph)
+function generateEnemy(size, i, crazy, ph, speed)
 	-- generate an enemy!
+	local enemyTexture = {logoASP, logoCLOJURE, logoCPP, logoCSH, logoDELPHI, logoEIFFEL, logoHASKELL, logoJAVA, logoJS, logoLISP, logoOZ, logoPERL, logoPYTHON, logoRUBY, logoSCALA}
+	
 	enemy = {}
-	enemy.width = 20
-	enemy.height = 40
+	enemy.width = 54
+	enemy.height = 54
 	local aux = 550/math.pow(2,size+1)
 	local beforeAux = 550/(size+1)
 	enemy.y =  aux + beforeAux * i
 	enemy.x = enemy.height + 800
+	enemy.speed = speed
 	enemy.isCrazy = crazy
 	enemy.phase = ph
+	enemy.texture = enemyTexture[math.random(1, #enemyTexture)]
 	table.insert(enemies, enemy)
 end
 
