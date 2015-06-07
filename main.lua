@@ -1,16 +1,30 @@
--- Demo para la presentacion de la materia 75.31 "Teoria del Lenguaje", lenguaje LUA
+-- Demo para la presentacion de la materia 75.31 "Teoria del Lenguaje", lenguaje LUA - GRUPO 3
 -- FIUBA, 08/06/2015
 
 function love.load()
 
+	math.randomseed(os.time())
+
 	-- new table for game data
 	game = {} 
 	game.state = "mainMenu"
+	game.playerName = ""
+	game.playerNameLocked = false
 	game.score = 0
-	game.highScores = {[1]={name="AAA", score=0, date=os.date("%c")}, [2]={name="BBB", score=0, date=os.date("%c")}, [3]={name="CCC", score=0, date=os.date("%c")}, [4]={name="DDD", score=0, date=os.date("%c")}, [5]={name="EEE", score=0, date=os.date("%c")}}
+	game.isHighScore = false
+	game.highScores = {[1]={name="CPU", score=500, date=os.date("%c")}, [2]={name="CPU", score=400, date=os.date("%c")}, [3]={name="CPU", score=300, date=os.date("%c")}, [4]={name="CPU", score=200, date=os.date("%c")}, [5]={name="CPU", score=100, date=os.date("%c")}}
 	
 	-- load external graphics
-	bgGame = love.graphics.newImage("bg.png")
+	bgGame = love.graphics.newImage("images/bgGame.png")
+	logoFIUBA = love.graphics.newImage("images/fiuba.png")
+	
+	downArrow = love.graphics.newImage("images/downArrow.png")
+	upArrow = love.graphics.newImage("images/upArrow.png")
+	spaceKey = love.graphics.newImage("images/spaceKey.png")
+	escKey = love.graphics.newImage("images/escKey.png")
+	
+	logoLUA = love.graphics.newImage("images/logoLUA.png")
+	logoLOVE = love.graphics.newImage("images/logoLOVE.png")
 	
 	-- loadSFX
 	startSound = love.audio.newSource("sounds/start.wav", "static")
@@ -23,6 +37,11 @@ function love.load()
 	menuMusic:setLooping(true)
 	gameMusic = love.audio.newSource("music/gameMusic.wav", "static")
 	gameMusic:setLooping(true)
+	
+	-- loadFont
+	oldFont = love.graphics.newFont("fonts/PressStart2P.ttf", 16)
+	oldFontSmall = love.graphics.newFont("fonts/PressStart2P.ttf", 12)
+	oldFontTitle = love.graphics.newFont("fonts/PressStart2P.ttf", 30)
 
 	menuMusic:play()	
 	initGame()
@@ -38,11 +57,11 @@ function love.update(dt)
 		if game.state == "playGame" then
 			-- game action
 			-- keyboard actions for player
-			if ((love.keyboard.isDown("up")) and (hero.y > 0)) then
-				hero.y = hero.y - hero.speed*dt
+			if ((love.keyboard.isDown("up")) and (player.y > 0)) then
+				player.y = player.y - player.speed*dt
 			else
-				if ((love.keyboard.isDown("down")) and (hero.y < (600-hero.height))) then
-					hero.y = hero.y + hero.speed*dt
+				if ((love.keyboard.isDown("down")) and (player.y < (550-player.height))) then
+					player.y = player.y + player.speed*dt
 				end
 			end
 
@@ -50,7 +69,7 @@ function love.update(dt)
 			local remShot = {}
 
 			-- update the shots
-			for i,v in ipairs(hero.shots) do
+			for i,v in ipairs(player.shots) do
 
 				-- move them right right right
 				v.x = v.x + dt * 100
@@ -83,7 +102,7 @@ function love.update(dt)
 			end
 
 			for i,v in ipairs(remShot) do
-				table.remove(hero.shots, v)
+				table.remove(player.shots, v)
 			end
 				
 			-- detect the farther position
@@ -111,10 +130,8 @@ function love.update(dt)
 			-- update those evil enemies
 			for i,v in ipairs(enemies) do
 				-- let them fall down slowly
-				--v.x = v.x - dt * 25
 				v.x = v.x - dt * 30
-				if (v.isCrazy) then
-					--v.y = v.y - (amplitud * math.sin( angular * math.abs(v.x-800)))
+				if v.isCrazy then
 					if v.phase == false then
 						v.y = v.y - (amplitud * math.sin( angular * math.abs(v.x-800)))
 						phase = false
@@ -124,15 +141,15 @@ function love.update(dt)
 					end
 				end
 
-				-- check for collision with left border
-				if v.x < 10 then
+				-- check for collision with left border or player
+				if ((v.x < 5) or (CheckCollision(v.x,v.y,v.width,v.height,player.x,player.y,player.width,player.height) == true)) then
 					-- you lose a life!
 					table.remove(enemies, i)
-					hero.livesLeft = hero.livesLeft - 1
+					player.livesLeft = player.livesLeft - 1
 					local sfx = endSound:clone()
 					sfx:play()
 					
-					if hero.livesLeft < 0 then
+					if player.livesLeft < 0 then
 						game.state = "gameOver"
 					end
 				end
@@ -140,8 +157,6 @@ function love.update(dt)
 				
 			if game.state == "gameOver" then
 				-- you lose the game!
-				table.insert(game.highScores, {name="FFF", score=game.score, date=os.date("%c")})
-				table.sort(game.highScores, compareScoresGt)
 				gameMusic:stop()
 				menuMusic:play()
 			end
@@ -156,26 +171,53 @@ function love.draw()
 	if game.state == "mainMenu" then
 		-- main menu
 		love.graphics.setBackgroundColor(0, 0, 0)
-		love.graphics.print("Bienvenidos! Presione SPACE para jugar...", 350, 300)
+		love.graphics.setFont(oldFontTitle)
+		love.graphics.setColor(255,0,0,255)
+		love.graphics.print("Lenguajes atacan!", 150, 70)
+		love.graphics.setFont(oldFont)
+		love.graphics.print("Rescatando a LUA", 280, 110)
+		love.graphics.setFont(oldFontSmall)
+		love.graphics.setColor(0,255,0,255)
+		love.graphics.print("Demo lenguaje LUA, GRUPO 3", 170, 200)
+		love.graphics.print("75.31 Teoria de Lenguajes", 170, 220)
+		love.graphics.print("FIUBA - 08/06/2015", 170, 240)
+		love.graphics.setColor(255,255,255,255)
+		love.graphics.draw(logoFIUBA, 510, 165)
+
+		love.graphics.print("Modo de juego:", 170, 330)
+		love.graphics.draw(upArrow, 170, 350)
+		love.graphics.draw(downArrow, 170, 400)
+		love.graphics.print("Movimiento arriba", 230, 370)
+		love.graphics.print("Movimiento abajo", 230, 420)
+
+		love.graphics.draw(spaceKey, 490, 350)
+		love.graphics.print("Disparo", 550, 370)
+		love.graphics.draw(escKey, 490, 400)
+		love.graphics.print("Salir", 550, 420)
+
+		love.graphics.setColor(255,255,0,255)
+		love.graphics.setFont(oldFont)
+		love.graphics.print("Presiona 'SPACE' para jugar...", 170, 520)
 	else 
 		if game.state == "playGame" then
 			-- game action
 			love.graphics.reset()
+			love.graphics.setFont(oldFont)
 			-- let's draw a background
 			love.graphics.setColor(255,255,255,255)
 			love.graphics.draw(bgGame)
 
 			-- let's draw some ground
-			love.graphics.setColor(0,255,0,255)
-			love.graphics.rectangle("fill", 0, 0, 10, 600)
+			love.graphics.setColor(255,0,0,255)
+			love.graphics.rectangle("fill", 0, 0, 5, 600)
 	
-			-- let's draw our hero
+			-- let's draw our player
 			love.graphics.setColor(255,255,0,255)
-			love.graphics.rectangle("fill", hero.x, hero.y, hero.width, hero.height)
+			love.graphics.rectangle("fill", player.x, player.y, player.width, player.height)
 
-			-- let's draw our heros shots
+			-- let's draw our players shots
 			love.graphics.setColor(255,255,255,255)
-			for i,v in ipairs(hero.shots) do
+			for i,v in ipairs(player.shots) do
 				love.graphics.rectangle("fill", v.x, v.y, 5, 2)
 			end
 
@@ -186,29 +228,99 @@ function love.draw()
 			end
 			
 			-- status messages at bottom of screen
+			love.graphics.setColor(0,0,0,255)
+			love.graphics.rectangle("fill", 0, 550, 800, 50)
 			love.graphics.setColor(255,255,255,255)
-			love.graphics.print("Tu puntaje es: " .. game.score .. ".", 600, 550)
-			love.graphics.print("Te quedan " .. hero.livesLeft .. " vidas:", 50, 550)
-			for i=0,hero.livesLeft-1 do
+			love.graphics.print("Tu puntaje es: " .. game.score, 10, 571)
+			love.graphics.print("Te quedan " .. player.livesLeft .. " vidas:", 415, 571)
+			for i=0,player.livesLeft-1 do
 				love.graphics.setColor(255,255,0,255)
-				love.graphics.rectangle("fill", 175 + i*(hero.width+10), 542, hero.width, hero.height)
+				love.graphics.rectangle("fill", 720 + i*(player.width+10), 560, player.width, player.height)
 			end	
 		else
 			-- game over!
 			love.graphics.reset()
 			love.graphics.setBackgroundColor(0, 0, 0)
-			love.graphics.print("Fin.", 400, 180)
-			love.graphics.print("Perdiste el juego :(", 400, 200)
-			love.graphics.print("Presioná SPACE para jugar de nuevo o ESC para salir!", 400, 220)
-			love.graphics.print("Tu puntaje es: " .. game.score .. ".", 400, 240)
-			love.graphics.print("Tabla de Puntajes", 400, 300)
-			for i=1,5 do
-				love.graphics.print(game.highScores[i].name, 400, 320 + 20*i)
-				love.graphics.print(game.highScores[i].score, 440, 320 + 20*i)
-				love.graphics.print(game.highScores[i].date, 480, 320 + 20*i)
+			love.graphics.setFont(oldFontTitle)	
+			love.graphics.setColor(255,0,0,255)
+			love.graphics.print("Game Over", 270, 80)
+			love.graphics.setFont(oldFont)
+			love.graphics.setColor(255,255,255,255)
+			love.graphics.print("Perdiste el juego :(", 250, 120)
+			love.graphics.setColor(255,255,0,255)
+			love.graphics.print("'SPACE' para jugar de nuevo...", 100, 200)
+			love.graphics.print("'ESC' para salir!", 100, 225)
+			love.graphics.setColor(255,255,255,255)			
+			love.graphics.print("Tu puntaje es: " .. game.score, 100, 270)
+			
+			-- highscore prompt and table
+			if ((game.score >= game.highScores[5].score) and (game.score ~= 0)) then
+				game.isHighScore = true
+				love.graphics.setFont(oldFontSmall)
+				love.graphics.setColor(0,255,0,255)
+				love.graphics.print("Estas entre los mejores! Ingresa tu nombre: " .. game.playerName, 100, 295)
+				love.graphics.print("Presiona 'ENTER' para guardar tu nombre.", 100, 310)				
 			end
+			love.graphics.setFont(oldFontSmall)
+			love.graphics.setColor(255,255,255,255)
+			love.graphics.print("Tabla de Puntajes", 200, 370)
+			for i=1,5 do
+				love.graphics.print(game.highScores[i].name, 200, 390 + 20*i)
+				love.graphics.print(game.highScores[i].score, 250, 390 + 20*i)
+				love.graphics.print(game.highScores[i].date, 340, 390 + 20*i)
+			end
+			
+			-- credits to love and lua!
+			love.graphics.setFont(oldFont)
+			love.graphics.print("Hecho con:", 50, 550)
+			love.graphics.draw(logoLUA, 220, 530)
+			love.graphics.draw(logoLOVE, 290, 530)
 		end
 	end	
+end
+
+function inTable(table, item)
+
+	-- search for item in table
+	for key, value in pairs(table) do
+		if value == item then 
+			return key
+		end
+	end
+	
+	return false
+end
+
+function love.keypressed(key)
+	
+	local validLetters = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
+	
+	-- player name handling
+	if (game.state == "gameOver" and game.playerNameLocked == false and game.isHighScore == true) then
+		
+		if (key and (inTable(validLetters, key) or (key == "backspace") or (key == "return")) and #game.playerName < 4) then
+		
+			if (key == "backspace") then
+				game.playerName = string.sub(game.playerName, 1, -2)
+			else
+		
+				if (key == "return") then
+					
+					if (#game.playerName == 3) then
+						
+						game.playerNameLocked = true
+						table.insert(game.highScores, {name=game.playerName, score=game.score, date=os.date("%c")})
+						table.sort(game.highScores, compareScoresGQt)
+					end
+				else
+		
+					if (#game.playerName < 3) then
+						game.playerName = string.upper(game.playerName..key)
+					end
+				end
+			end
+		end
+	end
 end
 
 function love.keyreleased(key)
@@ -236,7 +348,7 @@ function love.keyreleased(key)
 			-- game over!
 			if (key == " ") then
 				game.state = "playGame"
-				hero = nil
+				player = nil
 				enemies = nil
 				menuMusic:stop()
 				startSound:play()
@@ -249,20 +361,33 @@ end
 
 function initGame()
 
+	-- game properties
 	game.score = 0
+	game.isHighScore = false
+	game.playerName = ""
+	game.playerNameLocked = false
 
-	hero = {} -- new table for the hero
+	-- new table for the player
+	player = {}
 	enemies = {}
 
-	hero.x = 10 -- x,y coordinates of the hero
-	hero.y = 300
-	hero.width = 15
-	hero.height = 30
-	hero.speed = 150
-	hero.livesLeft = 3
-	hero.shots = {} -- holds our fired shots
+	-- x,y coordinates of the player
+	player.x = 5
+	player.y = 300
 
-	local size = 8
+	-- size of the player
+	player.width = 15
+	player.height = 30
+	
+	-- speed and lives left of the player
+	player.speed = 150
+	player.livesLeft = 3
+	
+	-- holds our fired shots
+	player.shots = {} 
+
+	-- first batch of enemies!
+	local size = 5
 	for i=0,size do
 		generateEnemy(size, i, false, true)
 	end	
@@ -270,11 +395,12 @@ function initGame()
 end
 
 function generateEnemy(size, i, crazy, ph)
+	-- generate an enemy!
 	enemy = {}
 	enemy.width = 20
 	enemy.height = 40
-	local aux = 600/math.pow(2,size+1)
-	local beforeAux = 600/(size+1)
+	local aux = 550/math.pow(2,size+1)
+	local beforeAux = 550/(size+1)
 	enemy.y =  aux + beforeAux * i
 	enemy.x = enemy.height + 800
 	enemy.isCrazy = crazy
@@ -284,15 +410,15 @@ end
 
 function shoot()
 	local shot = {}
-	shot.x = hero.x + hero.width
-	shot.y = hero.y + hero.height/2
+	shot.x = player.x + player.width
+	shot.y = player.y + player.height/2
 	local sfx = shotSound:clone()
 	sfx:play()
 	
-	table.insert(hero.shots, shot)
+	table.insert(player.shots, shot)
 end
 
--- Collision detection function.
+-- Collision detection function
 -- Returns true if two boxes overlap, false if they don't
 -- x1,y1 are the left-top coords of the first box, while w1,h1 are its width and height
 -- x2,y2,w2 & h2 are the same, but for the second box
@@ -303,8 +429,9 @@ function CheckCollision(x1,y1,w1,h1, x2,y2,w2,h2)
 		y2 < y1+h1
 end
 
-function compareScoresGt(w1,w2)
-	if w1.score > w2.score then
+-- Comparison function for sorting highscore table
+function compareScoresGQt(w1,w2)
+	if w1.score >= w2.score then
 		return true
 	end
 end
