@@ -11,6 +11,7 @@ function love.load()
 	game.playerName = ""
 	game.playerNameLocked = false
 	game.score = 0
+	game.scoreDate = ""
 	game.isHighScore = false
 	game.highScores = {[1]={name="CPU", score=500, date=os.date("%c")}, [2]={name="CPU", score=400, date=os.date("%c")}, [3]={name="CPU", score=300, date=os.date("%c")}, [4]={name="CPU", score=200, date=os.date("%c")}, [5]={name="CPU", score=100, date=os.date("%c")}}
 	
@@ -265,6 +266,11 @@ function love.draw()
 			love.graphics.setColor(255,255,255,255)
 			love.graphics.print("Tabla de Puntajes", 200, 370)
 			for i=1,5 do
+				if ((game.playerName == game.highScores[i].name) and (game.scoreDate == game.highScores[i].date)) then
+					love.graphics.setColor(0,255,0,255)
+				else
+					love.graphics.setColor(255,255,255,255)
+				end
 				love.graphics.print(game.highScores[i].name, 200, 390 + 20*i)
 				love.graphics.print(game.highScores[i].score, 250, 390 + 20*i)
 				love.graphics.print(game.highScores[i].date, 340, 390 + 20*i)
@@ -309,7 +315,8 @@ function love.keypressed(key)
 					if (#game.playerName == 3) then
 						
 						game.playerNameLocked = true
-						table.insert(game.highScores, {name=game.playerName, score=game.score, date=os.date("%c")})
+						game.scoreDate = os.date("%c")
+						table.insert(game.highScores, {name=game.playerName, score=game.score, date=game.scoreDate})
 						table.sort(game.highScores, compareScoresGQt)
 					end
 				else
@@ -363,6 +370,7 @@ function initGame()
 
 	-- game properties
 	game.score = 0
+	game.scoreDate = ""
 	game.isHighScore = false
 	game.playerName = ""
 	game.playerNameLocked = false
